@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>{{TITLE}}</title>
+<style>
+  :root {
+    --page: #dfe4ee;
+    --wall-1: #7aa7ff;
+    --wall-2: #c69cff;
+    --wall-3: #ffb1c8;
+    --wall-4: #8fe3d6;
+    --wall-base: #eef1f8;
+    --label: #0b0b0f;
+    --label2: rgba(30, 30, 40, 0.66);
+    --label3: rgba(30, 30, 40, 0.38);
+    --glass: rgba(255, 255, 255, 0.46);
+    --glass-strong: rgba(255, 255, 255, 0.62);
+    --glass-edge: rgba(255, 255, 255, 0.75);
+    --glass-tint: rgba(255, 255, 255, 0.28);
+    --hairline: rgba(0, 0, 0, 0.08);
+    --tint: #0a6cff;
+    --shadow: 0 10px 30px rgba(40, 50, 90, 0.14), 0 1px 2px rgba(40, 50, 90, 0.08);
+    --frame: #1d1d22;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #07080c;
+      --wall-1: #1f4bd6;
+      --wall-2: #6d2fd1;
+      --wall-3: #b8326b;
+      --wall-4: #0f8f86;
+      --wall-base: #0b0c12;
+      --label: #ffffff;
+      --label2: rgba(235, 235, 245, 0.7);
+      --label3: rgba(235, 235, 245, 0.38);
+      --glass: rgba(40, 42, 54, 0.42);
+      --glass-strong: rgba(48, 50, 64, 0.6);
+      --glass-edge: rgba(255, 255, 255, 0.16);
+      --glass-tint: rgba(255, 255, 255, 0.08);
+      --hairline: rgba(255, 255, 255, 0.1);
+      --tint: #4c9dff;
+      --shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+      --frame: #2a2a30;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    min-height: 100vh;
+    background: var(--page);
+    color: var(--label);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Apple SD Gothic Neo", "Pretendard", "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.4;
+    display: grid; place-items: center;
+    padding: 32px 16px;
+  }
+
+  /* iPhone frame (데스크톱에서만) */
+  .phone {
+    position: relative;
+    width: 402px; height: 874px;
+    border-radius: 62px;
+    padding: 12px;
+    background: var(--frame);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.08) inset, 0 40px 80px rgba(20, 25, 50, 0.35), 0 0 0 1px rgba(0,0,0,0.4);
+  }
+  .screen {
+    position: relative; width: 100%; height: 100%;
+    border-radius: 50px; overflow: hidden;
+    background: var(--wall-base);
+    isolation: isolate;
+  }
+  .island {
+    position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
+    width: 124px; height: 36px; border-radius: 20px; background: #000; z-index: 30;
+  }
+
+  /* Wallpaper: 컬러 블롭 위에 유리가 떠 있는 느낌 */
+  .wallpaper { position: absolute; inset: 0; z-index: -1; overflow: hidden; background: var(--wall-base); }
+  .wallpaper i {
+    position: absolute; border-radius: 50%; filter: blur(60px); opacity: .85;
+  }
+  .wallpaper i:nth-child(1) { width: 320px; height: 320px; background: var(--wall-1); top: -80px; left: -90px; }
+  .wallpaper i:nth-child(2) { width: 300px; height: 300px; background: var(--wall-2); top: 220px; right: -120px; }
+  .wallpaper i:nth-child(3) { width: 280px; height: 280px; background: var(--wall-3); bottom: 120px; left: -100px; }
+  .wallpaper i:nth-child(4) { width: 260px; height: 260px; background: var(--wall-4); bottom: -80px; right: -40px; }
+
+  .scroll {
+    position: absolute; inset: 0;
+    overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: none;
+    padding: 0 14px 120px;
+  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* Glass primitive */
+  .glass {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--glass-edge);
+    box-shadow: var(--shadow), inset 0 1px 0 var(--glass-tint);
+  }
+
+  /* Status bar */
+  .status {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; justify-content: space-between; align-items: center;
+    height: 54px; padding: 14px 22px 0 26px;
+    font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
+  }
+  .status .icons { display: flex; gap: 6px; align-items: center; }
+  .status svg { display: block; fill: currentColor; }
+
+  /* Compact nav (스크롤 시 나타남) */
+  .nav {
+    position: sticky; top: 54px; z-index: 15;
+    margin: 0 -14px; height: 0; overflow: visible;
+  }
+  .nav-pill {
+    position: absolute; left: 50%; top: 0; transform: translate(-50%, -8px);
+    padding: 7px 16px; border-radius: 999px;
+    font-size: 15px; font-weight: 600; white-space: nowrap;
+    opacity: 0; transition: opacity .25s, transform .25s;
+    pointer-events: none;
+  }
+  .nav.scrolled .nav-pill { opacity: 1; transform: translate(-50%, 0); }
+
+  /* Large title */
+  .hero { padding: 12px 6px 14px; }
+  .eyebrow { font-size: 13px; font-weight: 600; color: var(--label2); letter-spacing: .01em; }
+  .large-title { font-size: 36px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-top: 2px; }
+  .subtitle { font-size: 15px; color: var(--label2); margin-top: 6px; }
+
+  /* Segmented chips in a glass capsule */
+  .chips-wrap { border-radius: 999px; padding: 4px; margin-bottom: 14px; }
+  .chips { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: none; border: 0; cursor: pointer; background: transparent;
+    font: inherit; font-size: 14px; font-weight: 600; color: var(--label2);
+    padding: 8px 14px; border-radius: 999px;
+    transition: background .2s, color .2s, transform .1s;
+  }
+  .chip:active { transform: scale(.95); }
+  .chip.on { background: var(--glass-strong); color: var(--label); box-shadow: 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 var(--glass-tint); }
+
+  .notice {
+    border-radius: 22px; padding: 12px 14px; margin-bottom: 14px;
+    font-size: 13px; color: var(--label2);
+  }
+
+  /* Cards */
+  .list { display: flex; flex-direction: column; gap: 14px; }
+  .card {
+    position: relative; display: block; text-decoration: none; color: inherit;
+    border-radius: 30px; padding: 18px 18px 14px;
+    transition: transform .2s cubic-bezier(.2,.8,.2,1);
+  }
+  .card::before { /* 유리 위쪽 반사광 */
+    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(180deg, var(--glass-tint), transparent 40%);
+  }
+  .card:hover { transform: translateY(-2px); }
+  .card:active { transform: scale(.98); }
+  .meta { display: flex; align-items: center; gap: 10px; }
+  .badge {
+    width: 34px; height: 34px; border-radius: 11px; flex: none;
+    display: grid; place-items: center;
+    color: #fff; font-size: 12px; font-weight: 800; letter-spacing: -0.02em;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+  .meta-text { min-width: 0; flex: 1; }
+  .outlet { font-size: 14px; font-weight: 700; }
+  .sub { font-size: 12px; color: var(--label2); }
+  .rank {
+    font-size: 12px; font-weight: 700; color: var(--label2); font-variant-numeric: tabular-nums;
+    padding: 4px 9px; border-radius: 999px; background: var(--glass-tint); border: 1px solid var(--glass-edge);
+  }
+  .title-ko { font-size: 19px; font-weight: 750; letter-spacing: -0.02em; line-height: 1.32; margin-top: 14px; }
+  .title-en { font-size: 12.5px; color: var(--label2); margin-top: 5px; line-height: 1.35; }
+  .summary { font-size: 14.5px; line-height: 1.55; margin-top: 10px; color: var(--label); opacity: .9; }
+  .why {
+    margin-top: 12px; padding: 10px 12px; border-radius: 16px;
+    background: var(--glass-tint); border: 1px solid var(--glass-edge);
+    font-size: 13.5px; line-height: 1.45;
+  }
+  .why b { display: block; color: var(--tint); font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+  .foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--hairline);
+    font-size: 11.5px; color: var(--label2);
+  }
+  .foot span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .open {
+    flex: none; color: var(--tint); font-size: 13px; font-weight: 700;
+    padding: 6px 12px; border-radius: 999px; background: var(--glass-strong); border: 1px solid var(--glass-edge);
+  }
+
+  .footer { text-align: center; font-size: 11.5px; color: var(--label2); margin-top: 24px; line-height: 1.6; }
+
+  /* Floating glass tab bar */
+  .tabbar {
+    position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 20;
+    display: flex; gap: 4px; padding: 6px; border-radius: 999px;
+  }
+  .tab {
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    width: 72px; padding: 6px 0 5px; border-radius: 999px;
+    font-size: 10px; font-weight: 600; color: var(--label2);
+  }
+  .tab svg { width: 22px; height: 22px; fill: currentColor; }
+  .tab.on { color: var(--tint); background: var(--glass-strong); }
+  .home-bar {
+    position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 25;
+    width: 134px; height: 5px; border-radius: 3px; background: var(--label); opacity: .85;
+  }
+
+  /* 실제 휴대폰에서는 프레임 없이 전체 화면 */
+  @media (max-width: 500px) {
+    body { padding: 0; display: block; background: var(--wall-base); }
+    .phone { width: 100%; height: 100vh; height: 100dvh; border-radius: 0; padding: 0; background: none; box-shadow: none; }
+    .screen { border-radius: 0; }
+    .island, .home-bar, .status { display: none; }
+    .scroll { padding-top: env(safe-area-inset-top); }
+    .nav { top: 8px; }
+    .tabbar { bottom: calc(14px + env(safe-area-inset-bottom)); }
+  }
+  @media (max-height: 900px) and (min-width: 501px) {
+    .phone { height: calc(100vh - 64px); min-height: 640px; }
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="screen">
+    <div class="wallpaper" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="island" aria-hidden="true"></div>
+
+    <div class="scroll" id="scroll">
+      <div class="status" aria-hidden="true">
+        <span>9:41</span>
+        <span class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 2.6c2.2 0 4.2.9 5.7 2.3l1.1-1.1A9.6 9.6 0 0 0 8 1 9.6 9.6 0 0 0 1.2 3.8l1.1 1.1A8 8 0 0 1 8 2.6zm0 3.2c1.3 0 2.5.5 3.4 1.4l1.1-1.1A6.4 6.4 0 0 0 8 4.2c-1.7 0-3.3.7-4.5 1.9l1.1 1.1c.9-.9 2.1-1.4 3.4-1.4zM8 9a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>
+          <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2"/><rect x="24.5" y="4.5" width="1.6" height="4" rx=".8" opacity=".4"/></svg>
+        </span>
+      </div>
+
+      <div class="nav" id="nav"><div class="nav-pill glass">AI 뉴스</div></div>
+
+      <section class="hero">
+        <div class="eyebrow">Daily Clipping</div>
+        <h1 class="large-title">AI 뉴스</h1>
+        <p class="subtitle">{{SUBTITLE}}</p>
+      </section>
+
+      <div class="chips-wrap glass">
+        <nav class="chips" id="chips" aria-label="카테고리">{{CHIPS}}</nav>
+      </div>
+      {{NOTICE}}
+      <section class="list" id="list">
+{{CARDS}}
+      </section>
+      <footer class="footer">{{FOOTER}}</footer>
+    </div>
+
+    <nav class="tabbar glass" aria-hidden="true">
+      <div class="tab on"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm1 3v4h6V7H5zm8 0v2h6V7h-6zm0 4v2h6v-2h-6zM5 13v4h14v-2H5v-2z"/></svg>오늘</div>
+      <div class="tab"><svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>검색</div>
+      <div class="tab"><svg viewBox="0 0 24 24"><path d="M6 2h12a1 1 0 0 1 1 1v19l-7-4-7 4V3a1 1 0 0 1 1-1z"/></svg>저장</div>
+    </nav>
+    <div class="home-bar" aria-hidden="true"></div>
+  </div>
+</div>
+
+<script>
+/* 선택 기능: 스크립트가 막힌 환경에서도 기사는 그대로 보인다 */
+(function () {
+  var chips = document.querySelectorAll('.chip');
+  var cards = document.querySelectorAll('.card');
+  chips.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var c = b.getAttribute('data-category');
+      chips.forEach(function (x) { x.classList.toggle('on', x === b); });
+      cards.forEach(function (a) { a.style.display = (c === '전체' || a.getAttribute('data-category') === c) ? '' : 'none'; });
+    });
+  });
+  var nav = document.getElementById('nav');
+  var scroller = document.getElementById('scroll');
+  scroller.addEventListener('scroll', function () { nav.classList.toggle('scrolled', scroller.scrollTop > 60); }, { passive: true });
+})();
+</script>
+</body>
+</html>
