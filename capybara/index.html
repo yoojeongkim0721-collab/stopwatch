@@ -252,29 +252,77 @@
         <span class="count" id="count"></span>
       </label>
     </div>
-    <svg class="capy-art" viewBox="0 0 400 300" role="img" aria-label="점토 카피바라 그림">
+    <svg class="capy-art" viewBox="0 0 400 320" role="img" aria-label="온천에서 유자를 머리에 올린 귀여운 카피바라">
       <defs>
-        <radialGradient id="fur" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#d9a774"/><stop offset=".65" stop-color="#b07a4b"/><stop offset="1" stop-color="#8a5a33"/></radialGradient>
-        <radialGradient id="snout" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#c7905e"/><stop offset="1" stop-color="#7d4f2c"/></radialGradient>
-        <radialGradient id="water" cx="50%" cy="20%" r="90%"><stop offset="0" stop-color="#bfe3f5"/><stop offset="1" stop-color="#7fb7dc"/></radialGradient>
+        <radialGradient id="fur" cx="38%" cy="28%" r="80%"><stop offset="0" stop-color="#e8bd8a"/><stop offset=".6" stop-color="#c89262"/><stop offset="1" stop-color="#a06e43"/></radialGradient>
+        <radialGradient id="snout" cx="40%" cy="25%" r="85%"><stop offset="0" stop-color="#b98457"/><stop offset="1" stop-color="#7f5233"/></radialGradient>
+        <radialGradient id="ear" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#b98457"/><stop offset="1" stop-color="#8a5a36"/></radialGradient>
+        <radialGradient id="yuzu" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff1a6"/><stop offset=".55" stop-color="#ffd23f"/><stop offset="1" stop-color="#f0a92a"/></radialGradient>
+        <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe8f7"/><stop offset="1" stop-color="#86c3e6"/></linearGradient>
+        <clipPath id="aboveWater"><rect x="0" y="0" width="400" height="244"/></clipPath>
       </defs>
-      <ellipse cx="200" cy="262" rx="180" ry="30" fill="url(#water)"/>
-      <ellipse cx="190" cy="185" rx="135" ry="78" fill="url(#fur)"/>
-      <ellipse cx="128" cy="245" rx="22" ry="16" fill="#8a5a33"/>
-      <ellipse cx="250" cy="248" rx="22" ry="16" fill="#8a5a33"/>
-      <path d="M255 120 q70 -20 95 35 q15 40 -20 58 q-40 18 -85 -5 z" fill="url(#snout)"/>
-      <ellipse cx="335" cy="168" rx="9" ry="6" fill="#3a2414"/>
-      <ellipse cx="268" cy="108" rx="15" ry="11" fill="#8a5a33"/>
-      <ellipse cx="300" cy="135" rx="7" ry="5" fill="#2a170a"/>
-      <circle cx="302" cy="133" r="2" fill="#fff"/>
-      <path d="M318 190 q10 6 22 0" stroke="#3a2414" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <ellipse cx="150" cy="135" rx="60" ry="22" fill="#fff" opacity=".18"/>
-      <g transform="translate(205 92)">
-        <ellipse cx="0" cy="0" rx="28" ry="16" fill="#f6d36b"/>
-        <circle cx="-22" cy="-8" r="13" fill="#f6d36b"/>
-        <circle cx="-26" cy="-11" r="2.5" fill="#3a2414"/>
-        <path d="M-35 -8 l-9 3 l9 3 z" fill="#e99a3c"/>
-        <ellipse cx="10" cy="-4" rx="12" ry="7" fill="#efc24f"/>
+
+      <!-- 김 -->
+      <g fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity=".7">
+        <path d="M62 150 q-12 -16 0 -32 q12 -16 0 -32"><animate attributeName="opacity" values=".1;.7;.1" dur="3s" repeatCount="indefinite"/></path>
+        <path d="M338 160 q-12 -16 0 -32 q12 -16 0 -32"><animate attributeName="opacity" values=".7;.1;.7" dur="3s" repeatCount="indefinite"/></path>
+      </g>
+
+      <!-- 몸 + 머리 (물 위 부분만) -->
+      <g clip-path="url(#aboveWater)">
+        <ellipse cx="200" cy="262" rx="132" ry="70" fill="url(#fur)"/>
+        <!-- 귀 -->
+        <ellipse cx="124" cy="76" rx="15" ry="12" fill="url(#ear)"/>
+        <ellipse cx="276" cy="76" rx="15" ry="12" fill="url(#ear)"/>
+        <ellipse cx="125" cy="78" rx="7" ry="5" fill="#6e4429" opacity=".55"/>
+        <ellipse cx="275" cy="78" rx="7" ry="5" fill="#6e4429" opacity=".55"/>
+        <!-- 머리 -->
+        <rect x="106" y="70" width="188" height="168" rx="58" fill="url(#fur)"/>
+        <ellipse cx="160" cy="98" rx="44" ry="18" fill="#fff" opacity=".22"/>
+        <!-- 주둥이 -->
+        <rect x="132" y="146" width="136" height="80" rx="40" fill="url(#snout)"/>
+        <ellipse cx="186" cy="160" rx="30" ry="10" fill="#fff" opacity=".18"/>
+        <ellipse cx="182" cy="166" rx="7" ry="5" fill="#3b2316"/>
+        <ellipse cx="218" cy="166" rx="7" ry="5" fill="#3b2316"/>
+        <path d="M186 192 q7 8 14 0 q7 8 14 0" fill="none" stroke="#3b2316" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- 눈 -->
+        <g>
+          <ellipse cx="152" cy="132" rx="10" ry="11" fill="#2a170c"/>
+          <ellipse cx="248" cy="132" rx="10" ry="11" fill="#2a170c"/>
+          <circle cx="155" cy="128" r="3.6" fill="#fff"/>
+          <circle cx="251" cy="128" r="3.6" fill="#fff"/>
+          <circle cx="149" cy="136" r="1.6" fill="#fff" opacity=".8"/>
+          <circle cx="245" cy="136" r="1.6" fill="#fff" opacity=".8"/>
+        </g>
+        <!-- 볼터치 -->
+        <ellipse cx="132" cy="160" rx="15" ry="9" fill="#ff9aa6" opacity=".65"/>
+        <ellipse cx="268" cy="160" rx="15" ry="9" fill="#ff9aa6" opacity=".65"/>
+        <!-- 앞발 -->
+        <ellipse cx="160" cy="240" rx="18" ry="11" fill="#a06e43"/>
+        <ellipse cx="240" cy="240" rx="18" ry="11" fill="#a06e43"/>
+      </g>
+
+      <!-- 머리 위 유자 -->
+      <g>
+        <ellipse cx="200" cy="70" rx="30" ry="9" fill="#000" opacity=".12"/>
+        <circle cx="200" cy="50" r="26" fill="url(#yuzu)"/>
+        <circle cx="191" cy="41" r="7" fill="#fff" opacity=".55"/>
+        <path d="M200 26 q4 -8 2 -12" stroke="#7a9a3a" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M202 22 q16 -14 30 -6 q-12 14 -30 6 z" fill="#8cc152"/>
+        <animateTransform attributeName="transform" type="rotate" values="-4 200 70;4 200 70;-4 200 70" dur="3.2s" repeatCount="indefinite"/>
+      </g>
+
+      <!-- 물 -->
+      <path d="M14 248 q31 -10 62 0 t62 0 t62 0 t62 0 t62 0 t62 0 L386 292 q0 22 -40 22 H54 q-40 0 -40 -22 z" fill="url(#water)"/>
+      <path d="M40 262 q20 -6 40 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>
+      <path d="M300 272 q24 -6 48 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>
+      <!-- 물 위에 떠 있는 작은 유자 -->
+      <circle cx="320" cy="248" r="13" fill="url(#yuzu)"/>
+      <circle cx="78" cy="252" r="10" fill="url(#yuzu)"/>
+      <!-- 물방울 -->
+      <g fill="#ffffff" opacity=".8">
+        <circle cx="118" cy="232" r="5"><animate attributeName="cy" values="240;200;240" dur="2.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.9;0" dur="2.6s" repeatCount="indefinite"/></circle>
+        <circle cx="290" cy="228" r="4"><animate attributeName="cy" values="240;196;240" dur="3.1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.9;0" dur="3.1s" repeatCount="indefinite"/></circle>
       </g>
     </svg>
   </section>
