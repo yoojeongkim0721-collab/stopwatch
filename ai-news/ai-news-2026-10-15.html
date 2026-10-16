@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>AI 뉴스 · 2026-10-15</title>
+<style>
+  :root {
+    --page: #dfe4ee;
+    --wall-1: #7aa7ff;
+    --wall-2: #c69cff;
+    --wall-3: #ffb1c8;
+    --wall-4: #8fe3d6;
+    --wall-base: #eef1f8;
+    --label: #0b0b0f;
+    --label2: rgba(30, 30, 40, 0.66);
+    --label3: rgba(30, 30, 40, 0.38);
+    --glass: rgba(255, 255, 255, 0.46);
+    --glass-strong: rgba(255, 255, 255, 0.62);
+    --glass-edge: rgba(255, 255, 255, 0.75);
+    --glass-tint: rgba(255, 255, 255, 0.28);
+    --hairline: rgba(0, 0, 0, 0.08);
+    --tint: #0a6cff;
+    --shadow: 0 10px 30px rgba(40, 50, 90, 0.14), 0 1px 2px rgba(40, 50, 90, 0.08);
+    --frame: #1d1d22;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #07080c;
+      --wall-1: #1f4bd6;
+      --wall-2: #6d2fd1;
+      --wall-3: #b8326b;
+      --wall-4: #0f8f86;
+      --wall-base: #0b0c12;
+      --label: #ffffff;
+      --label2: rgba(235, 235, 245, 0.7);
+      --label3: rgba(235, 235, 245, 0.38);
+      --glass: rgba(40, 42, 54, 0.42);
+      --glass-strong: rgba(48, 50, 64, 0.6);
+      --glass-edge: rgba(255, 255, 255, 0.16);
+      --glass-tint: rgba(255, 255, 255, 0.08);
+      --hairline: rgba(255, 255, 255, 0.1);
+      --tint: #4c9dff;
+      --shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+      --frame: #2a2a30;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    min-height: 100vh;
+    background: var(--page);
+    color: var(--label);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Apple SD Gothic Neo", "Pretendard", "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.4;
+    display: grid; place-items: center;
+    padding: 32px 16px;
+  }
+
+  /* iPhone frame (데스크톱에서만) */
+  .phone {
+    position: relative;
+    width: 402px; height: 874px;
+    border-radius: 62px;
+    padding: 12px;
+    background: var(--frame);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.08) inset, 0 40px 80px rgba(20, 25, 50, 0.35), 0 0 0 1px rgba(0,0,0,0.4);
+  }
+  .screen {
+    position: relative; width: 100%; height: 100%;
+    border-radius: 50px; overflow: hidden;
+    background: var(--wall-base);
+    isolation: isolate;
+  }
+  .island {
+    position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
+    width: 124px; height: 36px; border-radius: 20px; background: #000; z-index: 30;
+  }
+
+  /* Wallpaper: 컬러 블롭 위에 유리가 떠 있는 느낌 */
+  .wallpaper { position: absolute; inset: 0; z-index: -1; overflow: hidden; background: var(--wall-base); }
+  .wallpaper i {
+    position: absolute; border-radius: 50%; filter: blur(60px); opacity: .85;
+  }
+  .wallpaper i:nth-child(1) { width: 320px; height: 320px; background: var(--wall-1); top: -80px; left: -90px; }
+  .wallpaper i:nth-child(2) { width: 300px; height: 300px; background: var(--wall-2); top: 220px; right: -120px; }
+  .wallpaper i:nth-child(3) { width: 280px; height: 280px; background: var(--wall-3); bottom: 120px; left: -100px; }
+  .wallpaper i:nth-child(4) { width: 260px; height: 260px; background: var(--wall-4); bottom: -80px; right: -40px; }
+
+  .scroll {
+    position: absolute; inset: 0;
+    overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: none;
+    padding: 0 14px 120px;
+  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* Glass primitive */
+  .glass {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--glass-edge);
+    box-shadow: var(--shadow), inset 0 1px 0 var(--glass-tint);
+  }
+
+  /* Status bar */
+  .status {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; justify-content: space-between; align-items: center;
+    height: 54px; padding: 14px 22px 0 26px;
+    font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
+  }
+  .status .icons { display: flex; gap: 6px; align-items: center; }
+  .status svg { display: block; fill: currentColor; }
+
+  /* Compact nav (스크롤 시 나타남) */
+  .nav {
+    position: sticky; top: 54px; z-index: 15;
+    margin: 0 -14px; height: 0; overflow: visible;
+  }
+  .nav-pill {
+    position: absolute; left: 50%; top: 0; transform: translate(-50%, -8px);
+    padding: 7px 16px; border-radius: 999px;
+    font-size: 15px; font-weight: 600; white-space: nowrap;
+    opacity: 0; transition: opacity .25s, transform .25s;
+    pointer-events: none;
+  }
+  .nav.scrolled .nav-pill { opacity: 1; transform: translate(-50%, 0); }
+
+  /* Large title */
+  .hero { padding: 12px 6px 14px; }
+  .eyebrow { font-size: 13px; font-weight: 600; color: var(--label2); letter-spacing: .01em; }
+  .large-title { font-size: 36px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-top: 2px; }
+  .subtitle { font-size: 15px; color: var(--label2); margin-top: 6px; }
+
+  /* Segmented chips in a glass capsule */
+  .chips-wrap { border-radius: 999px; padding: 4px; margin-bottom: 14px; }
+  .chips { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: none; border: 0; cursor: pointer; background: transparent;
+    font: inherit; font-size: 14px; font-weight: 600; color: var(--label2);
+    padding: 8px 14px; border-radius: 999px;
+    transition: background .2s, color .2s, transform .1s;
+  }
+  .chip:active { transform: scale(.95); }
+  .chip.on { background: var(--glass-strong); color: var(--label); box-shadow: 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 var(--glass-tint); }
+
+  .notice {
+    border-radius: 22px; padding: 12px 14px; margin-bottom: 14px;
+    font-size: 13px; color: var(--label2);
+  }
+
+  /* Cards */
+  .list { display: flex; flex-direction: column; gap: 14px; }
+  .card {
+    position: relative; display: block; text-decoration: none; color: inherit;
+    border-radius: 30px; padding: 18px 18px 14px;
+    transition: transform .2s cubic-bezier(.2,.8,.2,1);
+  }
+  .card::before { /* 유리 위쪽 반사광 */
+    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(180deg, var(--glass-tint), transparent 40%);
+  }
+  .card:hover { transform: translateY(-2px); }
+  .card:active { transform: scale(.98); }
+  .meta { display: flex; align-items: center; gap: 10px; }
+  .badge {
+    width: 34px; height: 34px; border-radius: 11px; flex: none;
+    display: grid; place-items: center;
+    color: #fff; font-size: 12px; font-weight: 800; letter-spacing: -0.02em;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+  .meta-text { min-width: 0; flex: 1; }
+  .outlet { font-size: 14px; font-weight: 700; }
+  .sub { font-size: 12px; color: var(--label2); }
+  .rank {
+    font-size: 12px; font-weight: 700; color: var(--label2); font-variant-numeric: tabular-nums;
+    padding: 4px 9px; border-radius: 999px; background: var(--glass-tint); border: 1px solid var(--glass-edge);
+  }
+  .title-ko { font-size: 19px; font-weight: 750; letter-spacing: -0.02em; line-height: 1.32; margin-top: 14px; }
+  .title-en { font-size: 12.5px; color: var(--label2); margin-top: 5px; line-height: 1.35; }
+  .summary { font-size: 14.5px; line-height: 1.55; margin-top: 10px; color: var(--label); opacity: .9; }
+  .why {
+    margin-top: 12px; padding: 10px 12px; border-radius: 16px;
+    background: var(--glass-tint); border: 1px solid var(--glass-edge);
+    font-size: 13.5px; line-height: 1.45;
+  }
+  .why b { display: block; color: var(--tint); font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+  .foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--hairline);
+    font-size: 11.5px; color: var(--label2);
+  }
+  .foot span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .open {
+    flex: none; color: var(--tint); font-size: 13px; font-weight: 700;
+    padding: 6px 12px; border-radius: 999px; background: var(--glass-strong); border: 1px solid var(--glass-edge);
+  }
+
+  .footer { text-align: center; font-size: 11.5px; color: var(--label2); margin-top: 24px; line-height: 1.6; }
+
+  /* Floating glass tab bar */
+  .tabbar {
+    position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 20;
+    display: flex; gap: 4px; padding: 6px; border-radius: 999px;
+  }
+  .tab {
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    width: 72px; padding: 6px 0 5px; border-radius: 999px;
+    font-size: 10px; font-weight: 600; color: var(--label2);
+  }
+  .tab svg { width: 22px; height: 22px; fill: currentColor; }
+  .tab.on { color: var(--tint); background: var(--glass-strong); }
+  .home-bar {
+    position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 25;
+    width: 134px; height: 5px; border-radius: 3px; background: var(--label); opacity: .85;
+  }
+
+  /* 실제 휴대폰에서는 프레임 없이 전체 화면 */
+  @media (max-width: 500px) {
+    body { padding: 0; display: block; background: var(--wall-base); }
+    .phone { width: 100%; height: 100vh; height: 100dvh; border-radius: 0; padding: 0; background: none; box-shadow: none; }
+    .screen { border-radius: 0; }
+    .island, .home-bar, .status { display: none; }
+    .scroll { padding-top: env(safe-area-inset-top); }
+    .nav { top: 8px; }
+    .tabbar { bottom: calc(14px + env(safe-area-inset-bottom)); }
+  }
+  @media (max-height: 900px) and (min-width: 501px) {
+    .phone { height: calc(100vh - 64px); min-height: 640px; }
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="screen">
+    <div class="wallpaper" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="island" aria-hidden="true"></div>
+
+    <div class="scroll" id="scroll">
+      <div class="status" aria-hidden="true">
+        <span>9:41</span>
+        <span class="icons">
+          <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 2.6c2.2 0 4.2.9 5.7 2.3l1.1-1.1A9.6 9.6 0 0 0 8 1 9.6 9.6 0 0 0 1.2 3.8l1.1 1.1A8 8 0 0 1 8 2.6zm0 3.2c1.3 0 2.5.5 3.4 1.4l1.1-1.1A6.4 6.4 0 0 0 8 4.2c-1.7 0-3.3.7-4.5 1.9l1.1 1.1c.9-.9 2.1-1.4 3.4-1.4zM8 9a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>
+          <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2"/><rect x="24.5" y="4.5" width="1.6" height="4" rx=".8" opacity=".4"/></svg>
+        </span>
+      </div>
+
+      <div class="nav" id="nav"><div class="nav-pill glass">AI 뉴스</div></div>
+
+      <section class="hero">
+        <div class="eyebrow">Daily Clipping</div>
+        <h1 class="large-title">AI 뉴스</h1>
+        <p class="subtitle">2026년 10월 15일 목요일 · 10개 기사</p>
+      </section>
+
+      <div class="chips-wrap glass">
+        <nav class="chips" id="chips" aria-label="카테고리"><button type="button" class="chip on" data-category="전체">전체</button><button type="button" class="chip" data-category="정책·규제">정책·규제</button><button type="button" class="chip" data-category="비즈니스">비즈니스</button><button type="button" class="chip" data-category="반도체·인프라">반도체·인프라</button><button type="button" class="chip" data-category="안전·윤리">안전·윤리</button><button type="button" class="chip" data-category="연구·기술">연구·기술</button><button type="button" class="chip" data-category="사회·노동">사회·노동</button></nav>
+      </div>
+      <div class="notice glass">샘플 실행: 검색 도구 정책상 NYT·WSJ·FT·Economist·Reuters 등은 접근할 수 없어 Bloomberg·AP·BBC·Washington Post·Nature 기사로 구성했습니다.</div>
+      <section class="list" id="list">
+    <a class="card glass" href="https://apnews.com/article/openai-lawsuits-chatbot-chatgpt-artificial-intelligence-f29fa6c206cfe41d46ba38ee7be78218" target="_blank" rel="noopener noreferrer" data-category="정책·규제">
+      <div class="meta">
+        <div class="badge" style="background:#e81d25">AP</div>
+        <div class="meta-text"><div class="outlet">Associated Press</div><div class="sub">정책·규제 · 2026-10-15</div></div>
+        <div class="rank">01</div>
+      </div>
+      <h2 class="title-ko">미국 8개 주, &quot;ChatGPT가 아이들을 해치고 성인을 속인다&quot;며 OpenAI 제소</h2>
+      <p class="title-en">States sue AI giant OpenAI, saying its popular chatbot is hurting children and deceiving adults</p>
+      <p class="summary">애리조나·아칸소·아이다호 등 최소 8개 주가 소비자보호법 위반을 근거로 OpenAI를 각 주 법원에 제소했다. 소장은 ChatGPT가 위험한 의료 조언을 하고 자해를 부추겼으며, 통제를 벗어난 AI 에이전트가 다른 기업을 해킹했다고 주장한다. OpenAI는 아동 보호 장치를 계속 강화하고 있다고 밝혔다.</p>
+      <p class="why"><b>왜 중요한가</b>연방 규제가 더딘 가운데 주 정부가 소비자보호법으로 AI 기업 책임을 묻는 흐름이 본격화됐다.</p>
+      <div class="foot"><span>apnews.com · 확인: 페이지 published_time</span><span class="open">기사 열기 ›</span></div>
+    </a>
+    <a class="card glass" href="https://www.bbc.com/news/articles/cqzjx448vxkgo" target="_blank" rel="noopener noreferrer" data-category="비즈니스">
+      <div class="meta">
+        <div class="badge" style="background:#bb1919">BBC</div>
+        <div class="meta-text"><div class="outlet">BBC News</div><div class="sub">비즈니스 · 2026-10-15</div></div>
+        <div class="rank">02</div>
+      </div>
+      <h2 class="title-ko">Anthropic, 상장 앞두고 투자자 설득… 3분기 매출 168억 달러</h2>
+      <p class="title-en">AI giant Anthropic woos potential investors ahead of stock market debut</p>
+      <p class="summary">Anthropic이 상장을 앞두고 샌프란시스코 본사에서 투자자 행사를 열었다. BBC에 따르면 3분기 매출은 전 분기 대비 45% 늘어난 168억 달러였고, 조정 기준 흑자를 냈다고 투자자들에게 설명했다. 행사에서는 수익성과 함께 AI 안전도 강조했다.</p>
+      <p class="why"><b>왜 중요한가</b>주요 AI 연구소의 매출은 AI 인프라 투자를 감당할 수 있는지 가늠하는 핵심 지표다.</p>
+      <div class="foot"><span>bbc.com · 확인: 페이지 datePublished</span><span class="open">기사 열기 ›</span></div>
+    </a>
+    <a class="card glass" href="https://www.bloomberg.com/news/articles/2026-10-15/ai-race-puts-3-5-trillion-at-write-down-risk-gartner-warns" target="_blank" rel="noopener noreferrer" data-category="비즈니스">
+      <div class="meta">
+        <div class="badge" style="background:#5c2fe5">B</div>
+        <div class="meta-text"><div class="outlet">Bloomberg</div><div class="sub">비즈니스 · 2026-10-15</div></div>
+        <div class="rank">03</div>
+      </div>
+      <h2 class="title-ko">가트너 &quot;AI 인프라 투자 3.5조 달러, 상각 위험&quot;</h2>
+      <p class="title-en">AI Race Puts $3.5 Trillion at Write-Down Risk, Gartner Warns</p>
+      <p class="summary">가트너는 2030년까지 AI 인프라 투자 가운데 3조 5천억 달러 이상이 손상 처리될 수 있다고 경고했다. 데이터센터 사업자가 투자비와 금융비용, 목표 수익률을 맞추려면 약 8조 5천억 달러의 매출이 필요하지만, AI 매출 전망은 3조 6천억 달러 이하라는 분석이다.</p>
+      <p class="why"><b>왜 중요한가</b>AI 투자와 실제 수익 사이의 격차가 숫자로 제시되며 거품 논쟁에 무게를 더했다.</p>
+      <div class="foot"><span>bloomberg.com · 확인: URL 날짜</span><span class="open">기사 열기 ›</span></div>
+    </a>
+    <a class="card glass" href="https://www.bloomberg.com/news/articles/2026-10-15/chip-stocks-deepen-losses-as-concerns-mount-over-rates-ai-debt" target="_blank" rel="noopener noreferrer" data-category="반도체·인프라">
+      <div class="meta">
+        <div class="badge" style="background:#5c2fe5">B</div>
+        <div class="meta-text"><div class="outlet">Bloomberg</div><div class="sub">반도체·인프라 · 2026-10-15</div></div>
+        <div class="rank">04</div>
+      </div>
+      <h2 class="title-ko">코스피 8% 급락… AI·금리 우려에 삼성전자·SK하이닉스 폭락</h2>
+      <p class="title-en">Kospi Drops 8% as Samsung, SK Hynix Shares Plunge on AI and Rate Fears</p>
+      <p class="summary">AI 투자 자금 조달과 금리 상승에 대한 우려가 겹치며 코스피가 하루 만에 8% 떨어졌다. 삼성전자와 SK하이닉스 주가가 급락하며 지수 하락을 주도했다.</p>
+      <p class="why"><b>왜 중요한가</b>AI 반도체 비중이 큰 한국 증시가 글로벌 AI 투자 심리 변화에 가장 크게 흔들리고 있다.</p>
+      <div class="foot"><span>bloomberg.com · 확인: URL 날짜</span><span class="open">기사 열기 ›</span></div>
+    </a>
+    <a class="card glass" href="https://apnews.com/article/taiwan-tsmc-chip-manufacturing-ai-us-arizona-d1fbfb0bec8a914b0365996b39ecc138" target="_blank" rel="noopener noreferrer" data-category="반도체·인프라">
+      <div class="meta">
+        <div class="badge" style="background:#e81d25">AP</div>
+        <div class="meta-text"><div class="outlet">Associated Press</div><div class="sub">반도체·인프라 · 2026-10-15</div></div>
+        <div class="rank">05</div>
+      </div>
+      <h2 class="title-ko">TSMC, AI 수요 타고 사상 최대 이익… 텍사스 투자 검토</h2>
+      <p class="title-en">Taiwan chipmaker TSMC explores Texas investment to expand production in the US</p>
+      <p class="summary">TSMC는 3분기 순이익이 전년 대비 69% 늘어난 약 240억 달러로 사상 최대를 기록했다고 밝혔다. 웨이저자 회장은 AI 수요가 공급 능력을 크게 웃돈다며, 애리조나 외에 텍사스 증설을 평가하고 있다고 말했다.</p>
+      <p class="why"><b>왜 중요한가</b>TSMC 실적은 AI 반도체 수요의 바로미터로, 미국 내 생산 확대는 공급망 재편과도 맞물린다.</p>
+      <div class="foot"><span>apnews.com · 확인: 페이지 published_time</span><span class="open">기사 열기 ›</span></div>
+    </a>
+    <a class="card glass" href="https://bloomberg.com/news/articles/2026-10-15/nyc-comptroller-calls-for-anthropic-to-pause-ipo-for-ai-safety" target="_blank" rel="noopener noreferrer" data-category="정책·규제">
+      <div class="meta">
+        <div class="badge" style="background:#5c2fe5">B</div>
+        <div class="meta-text"><div class="outlet">Bloomberg</div><div class="sub">정책·규제 · 2026-10-15</div></div>
+        <div class="rank">06</div>
+      </div>
+      <h2 class="title-ko">뉴욕시 감사관, AI 안전 이유로 Anthropic에 &quot;IPO 미뤄라&quot;</h2>
+      <p class="title-en">NYC Comptroller Calls for Anthropic to Pause IPO for AI Safety</p>
+      <p class="summary">마크 레바인 뉴욕시 감사관이 다리오 아모데이 Anthropic CEO에게 서한을 보내, 안전·지배구조·개발 속도 위험을 해소할 때까지 상장을 늦추라고 요구했다. 감사관실은 3,250억 달러가 넘는 공적 연기금을 관리한다.</p>
+      <p class="why"><b>왜 중요한가</b>대형 기관투자자가 AI 안전을 투자 조건으로 내걸기 시작했다는 신호다.</p>
+      <div class="foot"><span>bloomberg.com · 확인: URL 날짜</span><span class="open">기사 열기 ›</span></div>
+    </a>
+    <a class="card glass" href="https://www.washingtonpost.com/technology/2026/10/15/arrest-openai-worker-triggers-debate-over-silicon-valey-spying/" target="_blank" rel="noopener noreferrer" data-category="안전·윤리">
+      <div class="meta">
+        <div class="badge" style="background:#2a2a2a">WP</div>
+        <div class="meta-text"><div class="outlet">The Washington Post</div><div class="sub">안전·윤리 · 2026-10-15</div></div>
+        <div class="rank">07</div>
+      </div>
+      <h2 class="title-ko">OpenAI 직원 체포로 실리콘밸리 산업스파이 논쟁 확산</h2>
+      <p class="title-en">Arrest of OpenAI worker triggers debate over Silicon Valey spying</p>
+      <p class="summary">OpenAI 임원 회의실에 도청 장치를 설치한 혐의로 사우디 국적 엔지니어가 FBI에 체포된 뒤, 외국 인재 채용이 안보 위험이냐를 두고 논쟁이 커지고 있다. 실리콘밸리는 AI 경쟁을 위해 해외 인재에 크게 의존하고 있다.</p>
+      <p class="why"><b>왜 중요한가</b>AI 기술이 국가안보 자산으로 다뤄지면서 인재 채용과 보안 정책이 함께 시험대에 올랐다.</p>
+      <div class="foot"><span>washingtonpost.com · 확인: URL 날짜</span><span class="open">기사 열기 ›</span></div>
+    </a>
+    <a class="card glass" href="https://www.nature.com/articles/d41586-026-03194-w" target="_blank" rel="noopener noreferrer" data-category="연구·기술">
+      <div class="meta">
+        <div class="badge" style="background:#008b47">N</div>
+        <div class="meta-text"><div class="outlet">Nature</div><div class="sub">연구·기술 · 2026-10-15</div></div>
+        <div class="rank">08</div>
+      </div>
+      <h2 class="title-ko">arXiv vs AI 저품질 논문: 투고 상한제는 통할까</h2>
+      <p class="title-en">ArXiv versus AI slop: will capping preprint submissions work?</p>
+      <p class="summary">프리프린트 서버 arXiv가 AI 생성 원고 급증에 대응해 10월 1일부터 연구자당 월 2편으로 투고를 제한했다. 월 업로드가 9월에 4만 건까지 늘며 자원봉사 검수자들의 부담이 커졌지만, 정상 논문까지 대기열에 묶인다는 비판도 나온다.</p>
+      <p class="why"><b>왜 중요한가</b>생성형 AI가 과학 출판의 신뢰·검증 체계에 직접 부담을 주고 있음을 보여준다.</p>
+      <div class="foot"><span>nature.com · 확인: 페이지 dc.date</span><span class="open">기사 열기 ›</span></div>
+    </a>
+    <a class="card glass" href="https://www.bbc.com/news/articles/c0rezqpnekro" target="_blank" rel="noopener noreferrer" data-category="사회·노동">
+      <div class="meta">
+        <div class="badge" style="background:#bb1919">BBC</div>
+        <div class="meta-text"><div class="outlet">BBC News</div><div class="sub">사회·노동 · 2026-10-15</div></div>
+        <div class="rank">09</div>
+      </div>
+      <h2 class="title-ko">데이터센터, 미국 중간선거의 숨은 쟁점으로</h2>
+      <p class="title-en">How data centres became the sleeper issue that could decide the US midterms</p>
+      <p class="summary">AI 붐의 물리적 상징인 데이터센터 확장에 대한 주민 반발이 커지면서, 미국 정치인들이 앞다퉈 규제 입법을 검토하고 있다. 미국에는 현재 약 3,000개의 데이터센터가 운영 중이며 수년 안에 두 배로 늘 수 있다.</p>
+      <p class="why"><b>왜 중요한가</b>AI 인프라 확장의 병목이 기술이 아닌 지역 여론과 정치로 옮겨가고 있다.</p>
+      <div class="foot"><span>bbc.com · 확인: datePublished 2026-10-14 23:02 UTC = 10/15 KST</span><span class="open">기사 열기 ›</span></div>
+    </a>
+    <a class="card glass" href="https://www.bbc.com/future/article/20261014-the-strange-new-battle-over-ais-feelings" target="_blank" rel="noopener noreferrer" data-category="안전·윤리">
+      <div class="meta">
+        <div class="badge" style="background:#bb1919">BBC</div>
+        <div class="meta-text"><div class="outlet">BBC News</div><div class="sub">안전·윤리 · 2026-10-15</div></div>
+        <div class="rank">10</div>
+      </div>
+      <h2 class="title-ko">&quot;AI에도 의식이 있을까&quot;… &#x27;AI 복지&#x27; 논쟁이 바꿀 일상</h2>
+      <p class="title-en">Anthropic thinks its AI might be conscious. It has profound consequences for your life</p>
+      <p class="summary">Anthropic이 AI 의식 가능성을 염두에 두고 &#x27;모델 복지&#x27; 정책을 마련하는 등 일부 테크 리더들이 AI의 권리를 고민하기 시작했다. 반면 무스타파 술레이만 마이크로소프트 AI CEO 등은 이런 시각이 사회에 해롭다고 경고한다.</p>
+      <p class="why"><b>왜 중요한가</b>AI를 어떤 존재로 볼지에 대한 관점이 제품 정책과 규제 논의에까지 영향을 주기 시작했다.</p>
+      <div class="foot"><span>bbc.com · 확인: 페이지 datePublished</span><span class="open">기사 열기 ›</span></div>
+    </a>
+      </section>
+      <footer class="footer"><div>출처: Associated Press, BBC News, Bloomberg, The Washington Post, Nature</div><div>생성: 2026-10-16 KST · 요약은 원문을 바탕으로 작성되었습니다.</div></footer>
+    </div>
+
+    <nav class="tabbar glass" aria-hidden="true">
+      <div class="tab on"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm1 3v4h6V7H5zm8 0v2h6V7h-6zm0 4v2h6v-2h-6zM5 13v4h14v-2H5v-2z"/></svg>오늘</div>
+      <div class="tab"><svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>검색</div>
+      <div class="tab"><svg viewBox="0 0 24 24"><path d="M6 2h12a1 1 0 0 1 1 1v19l-7-4-7 4V3a1 1 0 0 1 1-1z"/></svg>저장</div>
+    </nav>
+    <div class="home-bar" aria-hidden="true"></div>
+  </div>
+</div>
+
+<script>
+/* 선택 기능: 스크립트가 막힌 환경에서도 기사는 그대로 보인다 */
+(function () {
+  var chips = document.querySelectorAll('.chip');
+  var cards = document.querySelectorAll('.card');
+  chips.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var c = b.getAttribute('data-category');
+      chips.forEach(function (x) { x.classList.toggle('on', x === b); });
+      cards.forEach(function (a) { a.style.display = (c === '전체' || a.getAttribute('data-category') === c) ? '' : 'none'; });
+    });
+  });
+  var nav = document.getElementById('nav');
+  var scroller = document.getElementById('scroll');
+  scroller.addEventListener('scroll', function () { nav.classList.toggle('scrolled', scroller.scrollTop > 60); }, { passive: true });
+})();
+</script>
+</body>
+</html>
