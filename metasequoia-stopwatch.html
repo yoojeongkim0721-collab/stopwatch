@@ -1,0 +1,1268 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>메타세쿼이아 스탑워치</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Noto+Sans+KR:wght@300;400;500&family=Noto+Serif+KR:wght@300;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0d0c;
+    --text: #f6f4ef;
+    --muted: rgba(246, 244, 239, 0.62);
+    --faint: rgba(246, 244, 239, 0.28);
+    --glass: rgba(14, 16, 15, 0.38);
+    --glass-line: rgba(255, 255, 255, 0.14);
+    --stop: #e2553f;
+    --best: #8fe0a0;
+    --worst: #ff8f7a;
+    --sans: "Inter", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+    --serif: "Noto Serif KR", "Batang", serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #0b0d0c; }
+  }
+  :root[data-theme="dark"] { --bg: #0b0d0c; }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  body.no-webgl {
+    background: radial-gradient(ellipse at 50% 40%, #3d5a33 0%, #1b2617 55%, #0b0d0c 100%);
+  }
+
+  #scene {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* 글자 가독성을 위한 은은한 위/아래 그라데이션 */
+  .shade {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom, rgba(0,0,0,.42) 0%, rgba(0,0,0,0) 22%),
+      linear-gradient(to top, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 38%);
+  }
+
+  .hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 28px 32px;
+    pointer-events: none;
+    text-shadow: 0 1px 12px rgba(0,0,0,.35);
+  }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .season-name {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 34px;
+    margin: 6px 0 12px;
+    letter-spacing: .04em;
+  }
+  .year-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    width: 180px;
+  }
+  .year-bar span {
+    height: 2px;
+    background: var(--faint);
+    position: relative;
+    overflow: hidden;
+  }
+  .year-bar span i {
+    position: absolute;
+    inset: 0;
+    background: var(--text);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .year-labels {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    width: 180px;
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .1em;
+  }
+  .hud-right { text-align: right; }
+  .speed {
+    font-size: 30px;
+    font-weight: 200;
+    font-variant-numeric: tabular-nums;
+    margin-top: 6px;
+  }
+  .speed small { font-size: 12px; color: var(--muted); margin-left: 4px; font-weight: 400; }
+
+  .title-card {
+    position: fixed;
+    left: 0; right: 0;
+    top: 24vh;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    text-shadow: 0 2px 30px rgba(0,0,0,.45);
+  }
+  .title-card.show { animation: card 6.5s ease-in-out forwards; }
+  @keyframes card {
+    0%   { opacity: 0; transform: translateY(10px); letter-spacing: .5em; }
+    20%  { opacity: 1; transform: translateY(0); }
+    75%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-6px); letter-spacing: .62em; }
+  }
+  .title-card .en {
+    font-size: 12px;
+    letter-spacing: .5em;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .title-card .ko {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(48px, 9vw, 96px);
+    margin: 10px 0 8px;
+    letter-spacing: .18em;
+  }
+  .title-card .line {
+    font-family: var(--serif);
+    font-size: clamp(14px, 2vw, 18px);
+    color: var(--muted);
+    letter-spacing: .14em;
+  }
+
+  .panel {
+    position: fixed;
+    left: 50%;
+    bottom: 32px;
+    transform: translateX(-50%);
+    width: min(440px, calc(100% - 32px));
+    padding: 22px 24px 18px;
+    border-radius: 24px;
+    background: var(--glass);
+    border: 1px solid var(--glass-line);
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  }
+  .display {
+    font-variant-numeric: tabular-nums;
+    font-weight: 200;
+    font-size: clamp(48px, 13vw, 76px);
+    text-align: center;
+    letter-spacing: -.01em;
+    line-height: 1;
+    margin: 4px 0 20px;
+  }
+  .controls { display: flex; gap: 12px; }
+  .controls button {
+    flex: 1;
+    height: 52px;
+    border-radius: 999px;
+    font: 500 15px var(--sans);
+    letter-spacing: .06em;
+    cursor: pointer;
+    transition: background .25s, color .25s, opacity .2s, transform .06s;
+  }
+  .controls button:active { transform: scale(.97); }
+  #lapReset {
+    background: rgba(255,255,255,.06);
+    color: var(--text);
+    border: 1px solid var(--glass-line);
+  }
+  #lapReset:disabled { opacity: .35; cursor: default; }
+  #startStop {
+    background: var(--text);
+    color: #111;
+    border: 1px solid transparent;
+  }
+  #startStop.running {
+    background: var(--stop);
+    color: #fff;
+  }
+  .laps {
+    list-style: none;
+    margin: 14px 0 0;
+    padding: 0;
+    max-height: 132px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .laps:empty { display: none; }
+  .laps li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 4px;
+    border-top: 1px solid var(--glass-line);
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .laps li.current { color: var(--text); }
+  .laps li.best { color: var(--best); }
+  .laps li.worst { color: var(--worst); }
+  .hint {
+    text-align: center;
+    color: var(--faint);
+    font-size: 11px;
+    margin: 12px 0 0;
+    letter-spacing: .04em;
+  }
+
+  #fade {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 2.4s ease;
+  }
+  #fade.quick { transition: opacity .6s ease; }
+
+  @media (max-width: 640px) {
+    .hud { padding: 18px 16px; }
+    .season-name { font-size: 26px; }
+    .year-bar, .year-labels { width: 140px; }
+    .speed { font-size: 22px; }
+    .panel { bottom: 16px; padding: 18px 16px 14px; }
+    .hint { display: none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div class="shade"></div>
+
+<header class="hud">
+  <div>
+    <div class="eyebrow" id="yearLabel">YEAR 1 · 3월</div>
+    <div class="season-name" id="seasonName">봄</div>
+    <div class="year-bar">
+      <span><i id="seg0"></i></span><span><i id="seg1"></i></span><span><i id="seg2"></i></span><span><i id="seg3"></i></span>
+    </div>
+    <div class="year-labels"><span>봄</span><span>여름</span><span>가을</span><span>겨울</span></div>
+  </div>
+  <div class="hud-right">
+    <div class="eyebrow">메타세쿼이아 가로수길</div>
+    <div class="speed"><span id="speed">0</span><small>km/h</small></div>
+  </div>
+</header>
+
+<div class="title-card" id="titleCard">
+  <div class="en" id="tcEn">SPRING</div>
+  <div class="ko" id="tcKo">봄</div>
+  <div class="line" id="tcLine"></div>
+</div>
+
+<main class="panel">
+  <div class="display" id="display">00:00.00</div>
+  <div class="controls">
+    <button id="lapReset" disabled>랩</button>
+    <button id="startStop">시작</button>
+  </div>
+  <ul class="laps" id="laps"></ul>
+  <p class="hint">Space 시작/정지 · L 랩 · R 재설정 · 1분마다 계절이 바뀝니다</p>
+</main>
+
+<div id="fade"></div>
+
+<!-- 스탑워치 로직: 3D 장면이 실패해도 독립적으로 동작 -->
+<script>
+(function () {
+  const display = document.getElementById('display');
+  const startStopBtn = document.getElementById('startStop');
+  const lapResetBtn = document.getElementById('lapReset');
+  const lapsEl = document.getElementById('laps');
+
+  let running = false;
+  let startTime = 0;   // performance.now() at last start
+  let elapsed = 0;     // ms accumulated before last start
+  let lapStart = 0;    // total elapsed at start of current lap
+  let laps = [];       // completed lap durations (ms)
+
+  function format(ms) {
+    const totalCs = Math.floor(ms / 10);
+    const cs = totalCs % 100;
+    const totalSec = Math.floor(totalCs / 100);
+    const s = totalSec % 60;
+    const totalMin = Math.floor(totalSec / 60);
+    const m = totalMin % 60;
+    const h = Math.floor(totalMin / 60);
+    const pad = n => String(n).padStart(2, '0');
+    return (h ? h + ':' + pad(m) : pad(m)) + ':' + pad(s) + '.' + pad(cs);
+  }
+
+  function now() {
+    return running ? elapsed + (performance.now() - startTime) : elapsed;
+  }
+
+  function tick() {
+    const t = now();
+    display.textContent = format(t);
+    const current = lapsEl.querySelector('li.current span:last-child');
+    if (current) current.textContent = format(t - lapStart);
+    requestAnimationFrame(tick);
+  }
+
+  function lapRow(n, ms, cls) {
+    const li = document.createElement('li');
+    if (cls) li.className = cls;
+    li.innerHTML = '<span>랩 ' + n + '</span><span>' + format(ms) + '</span>';
+    return li;
+  }
+
+  function renderLaps() {
+    lapsEl.innerHTML = '';
+    if (running || elapsed > 0) {
+      lapsEl.appendChild(lapRow(laps.length + 1, now() - lapStart, 'current'));
+    }
+    let min = -1, max = -1;
+    if (laps.length >= 2) {
+      min = laps.indexOf(Math.min(...laps));
+      max = laps.indexOf(Math.max(...laps));
+    }
+    for (let i = laps.length - 1; i >= 0; i--) {
+      const cls = i === min ? 'best' : i === max ? 'worst' : '';
+      lapsEl.appendChild(lapRow(i + 1, laps[i], cls));
+    }
+  }
+
+  function updateButtons() {
+    startStopBtn.textContent = running ? '정지' : '시작';
+    startStopBtn.classList.toggle('running', running);
+    lapResetBtn.textContent = running || elapsed === 0 ? '랩' : '재설정';
+    lapResetBtn.disabled = !running && elapsed === 0;
+  }
+
+  function startStop() {
+    if (running) {
+      elapsed = now();
+      running = false;
+    } else {
+      startTime = performance.now();
+      running = true;
+    }
+    updateButtons();
+    renderLaps();
+  }
+
+  function lap() {
+    if (!running) return;
+    const t = now();
+    laps.push(t - lapStart);
+    lapStart = t;
+    renderLaps();
+  }
+
+  function reset() {
+    if (running) return;
+    elapsed = 0;
+    lapStart = 0;
+    laps = [];
+    renderLaps();
+    updateButtons();
+    window.dispatchEvent(new Event('sw-reset'));
+  }
+
+  startStopBtn.addEventListener('click', startStop);
+  lapResetBtn.addEventListener('click', () => running ? lap() : reset());
+  document.addEventListener('keydown', e => {
+    if (e.repeat) return;
+    if (e.code === 'Space') { e.preventDefault(); startStop(); }
+    else if (e.key === 'l' || e.key === 'L') lap();
+    else if (e.key === 'r' || e.key === 'R') reset();
+  });
+
+  window.SW = { elapsed: now, running: () => running };
+  tick();
+})();
+</script>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+const SEASON_MS = 60000;           // 계절 하나의 길이 (스탑워치 경과 시간 기준)
+const LOOP = 270;                  // 가로수 반복 구간 길이 (m)
+const fadeEl = document.getElementById('fade');
+
+// ---------------------------------------------------------------- renderer
+const canvas = document.getElementById('scene');
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+} catch (e) {
+  document.body.classList.add('no-webgl');
+  fadeEl.style.opacity = 0;
+  throw e;
+}
+const DPR = Math.min(window.devicePixelRatio || 1, innerWidth < 700 ? 1.25 : 1.5);
+renderer.setPixelRatio(DPR);
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const MAX_ANISO = renderer.capabilities.getMaxAnisotropy();
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0xcfd9d4, 0.011);
+
+const camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.1, 1500);
+const camBase = new THREE.Vector3(1.3, 1.22, 0);
+const camTarget = new THREE.Vector3(1.0, 5.5, -60);
+
+// ---------------------------------------------------------------- helpers
+const rand = (a = 0, b = 1) => a + Math.random() * (b - a);
+const smooth = (a, b, x) => { const t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); };
+
+function makeNoise(gw, gh) {
+  const g = Array.from({ length: gw * gh }, Math.random);
+  const at = (i, j) => g[(((j % gh) + gh) % gh) * gw + (((i % gw) + gw) % gw)];
+  return (u, v) => {
+    const x = u * gw, y = v * gh;
+    const x0 = Math.floor(x), y0 = Math.floor(y);
+    const fx = x - x0, fy = y - y0;
+    const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+    const a = at(x0, y0) + (at(x0 + 1, y0) - at(x0, y0)) * sx;
+    const b = at(x0, y0 + 1) + (at(x0 + 1, y0 + 1) - at(x0, y0 + 1)) * sx;
+    return a + (b - a) * sy;
+  };
+}
+
+function canvasTex(c, { srgb = true, repeat = true } = {}) {
+  const t = new THREE.CanvasTexture(c);
+  if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+  if (repeat) t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = MAX_ANISO;
+  return t;
+}
+
+// ---------------------------------------------------------------- textures
+// 메타세쿼이아 잎: 깃털처럼 마주난 바늘잎 가지
+function makeLeafTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.lineCap = 'round';
+  for (let f = 0; f < 8; f++) {
+    let x = 128 + rand(-50, 50), y = 252;
+    let a = -Math.PI / 2 + rand(-0.75, 0.75);
+    const len = rand(150, 240), steps = 24, step = len / steps;
+    const bend = rand(-0.7, 0.7);
+    for (let s = 0; s < steps; s++) {
+      const t = s / steps;
+      const nx = x + Math.cos(a) * step, ny = y + Math.sin(a) * step;
+      const l = 150 + Math.random() * 40 | 0;
+      g.strokeStyle = `rgb(${l},${l},${l})`;
+      g.lineWidth = 2.6 * (1 - t * 0.6);
+      g.beginPath(); g.moveTo(x, y); g.lineTo(nx, ny); g.stroke();
+      if (t > 0.08) {
+        const nl = (13 + 9 * Math.sin(t * Math.PI)) * (1 - t * 0.35);
+        for (const side of [-1, 1]) {
+          const na = a + side * rand(1.05, 1.35);
+          const v = 200 + Math.random() * 55 | 0;
+          g.strokeStyle = `rgb(${v},${v},${v * 0.97 | 0})`;
+          g.lineWidth = rand(2.6, 3.6);
+          g.beginPath();
+          g.moveTo(x, y);
+          g.lineTo(x + Math.cos(na) * nl, y + Math.sin(na) * nl);
+          g.stroke();
+        }
+      }
+      x = nx; y = ny; a += bend / steps;
+    }
+  }
+  const t = canvasTex(c, { repeat: false });
+  return t;
+}
+
+function makeBarkTexture() {
+  const c = document.createElement('canvas');
+  c.width = 128; c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#6a3a25';
+  g.fillRect(0, 0, 128, 512);
+  const cols = ['#8c5536', '#4a2617', '#7a452c', '#33190f', '#a06a48', '#5b3020'];
+  for (let i = 0; i < 1100; i++) {
+    const x = rand(0, 128), y = rand(-100, 512), l = rand(40, 260);
+    g.strokeStyle = cols[i % cols.length];
+    g.globalAlpha = rand(0.25, 0.7);
+    g.lineWidth = rand(0.6, 3.2);
+    g.beginPath();
+    g.moveTo(x, y);
+    g.bezierCurveTo(x + rand(-3, 3), y + l * 0.33, x + rand(-3, 3), y + l * 0.66, x + rand(-2, 2), y + l);
+    g.stroke();
+    // 세로로 끊김 없이 이어지도록 위아래로 복제
+    g.beginPath(); g.moveTo(x, y + 512); g.lineTo(x, y + 512 + l); g.stroke();
+  }
+  g.globalAlpha = 1;
+  const t = canvasTex(c);
+  t.repeat.set(3, 7);
+  return t;
+}
+
+function makeRoadTexture() {
+  const W = 512, H = 1024, ppm = W / 7.4;   // 7.4m 폭, 14m 길이
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  const img = g.createImageData(W, H);
+  const n1 = makeNoise(6, 12), n2 = makeNoise(40, 80);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const u = x / W, v = y / H;
+    let l = 88 + (n1(u, v) - 0.5) * 22 + (n2(u, v) - 0.5) * 14 + (Math.random() - 0.5) * 34;
+    // 바퀴 자국 (광택 있는 마모)
+    const xm = u * 7.4;
+    for (const c0 of [1.0, 2.7, 4.7, 6.4]) l -= 6 * Math.exp(-Math.pow((xm - c0) / 0.35, 2));
+    if (Math.random() < 0.012) l += 40;   // 골재 반짝임
+    const i = (y * W + x) * 4;
+    img.data[i] = l; img.data[i + 1] = l; img.data[i + 2] = l + 2; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  // 균열
+  g.strokeStyle = 'rgba(20,20,22,.55)';
+  for (let k = 0; k < 7; k++) {
+    let x = rand(40, W - 40), y = rand(0, H);
+    g.lineWidth = rand(0.8, 1.8);
+    g.beginPath(); g.moveTo(x, y);
+    for (let s = 0; s < 14; s++) { x += rand(-14, 14); y += rand(4, 22); g.lineTo(x, y); }
+    g.stroke();
+  }
+  // 차선: 흰색 가장자리선 + 노란 중앙 복선
+  const paint = (cx, w, col) => {
+    for (let y = 0; y < H; y += 2) {
+      g.fillStyle = col;
+      g.globalAlpha = 0.72 + Math.random() * 0.25;
+      g.fillRect(cx - w / 2 + rand(-0.6, 0.6), y, w, 2);
+    }
+    g.globalAlpha = 1;
+  };
+  paint(0.32 * ppm, 0.15 * ppm, '#d9d9d2');
+  paint(W - 0.32 * ppm, 0.15 * ppm, '#d9d9d2');
+  paint(W / 2 - 0.12 * ppm, 0.12 * ppm, '#d6a22a');
+  paint(W / 2 + 0.12 * ppm, 0.12 * ppm, '#d6a22a');
+  const t = canvasTex(c);
+  t.repeat.set(1, 420 / 14);
+  return t;
+}
+
+function makeGroundTexture() {
+  const S = 512;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const g = c.getContext('2d');
+  const img = g.createImageData(S, S);
+  const n1 = makeNoise(5, 5), n2 = makeNoise(24, 24), n3 = makeNoise(90, 90);
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+    const u = x / S, v = y / S;
+    let l = 0.74 + (n1(u, v) - 0.5) * 0.28 + (n2(u, v) - 0.5) * 0.2 + (n3(u, v) - 0.5) * 0.16 + (Math.random() - 0.5) * 0.14;
+    l = Math.max(0, Math.min(1, l)) * 255;
+    const i = (y * S + x) * 4;
+    img.data[i] = l; img.data[i + 1] = l * 0.99; img.data[i + 2] = l * 0.96; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  const t = canvasTex(c);
+  t.repeat.set(200 / 8, 420 / 8);
+  return t;
+}
+
+// 도로 가장자리에 쌓이는 낙엽/눈 띠 (u=1 쪽이 숲 방향)
+function makeEdgeTexture() {
+  const W = 128, H = 512;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  const img = g.createImageData(W, H);
+  const n1 = makeNoise(4, 24), n2 = makeNoise(16, 90);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const u = x / W, v = y / H;
+    const edge = smooth(0.1 + n1(u, v) * 0.45, 0.75, u);
+    const a = Math.min(1, edge * (0.55 + 0.75 * n2(u, v)) + (Math.random() - 0.5) * 0.15);
+    const l = 230 + Math.random() * 25;
+    const i = (y * W + x) * 4;
+    img.data[i] = l; img.data[i + 1] = l; img.data[i + 2] = l; img.data[i + 3] = Math.max(0, a) * 255;
+  }
+  g.putImageData(img, 0, 0);
+  const t = canvasTex(c);
+  t.repeat.set(1, 420 / 10);
+  return t;
+}
+
+const leafTex = makeLeafTexture();
+const barkTex = makeBarkTexture();
+const roadTex = makeRoadTexture();
+const groundTex = makeGroundTexture();
+const edgeTex = makeEdgeTexture();
+
+// ---------------------------------------------------------------- shared uniforms
+const U = {
+  uTime: { value: 0 },
+  uDensity: { value: 0.85 },
+  uSunDirView: { value: new THREE.Vector3() },
+  uSunCol: { value: new THREE.Color() },
+  uTrans: { value: 1 },
+};
+
+const SWAY = `
+  float iid = float(gl_InstanceID);
+  float sway = transformed.y * 0.006;
+  transformed.x += sin(uTime * 0.8 + iid * 1.7) * sway;
+  transformed.z += cos(uTime * 0.6 + iid * 2.3) * sway * 0.6;
+`;
+const FOLIAGE_VERT = `
+  float grow = clamp((uDensity - aRand) * 12.0, 0.0, 1.0);
+  transformed = mix(aCenter, transformed, grow);
+  transformed += normal * sin(uTime * 2.3 + aRand * 50.0) * 0.04;
+` + SWAY;
+
+function injectFoliageVertex(shader) {
+  shader.uniforms.uTime = U.uTime;
+  shader.uniforms.uDensity = U.uDensity;
+  shader.vertexShader = shader.vertexShader
+    .replace('#include <common>', `#include <common>
+      attribute float aRand;
+      attribute vec3 aCenter;
+      uniform float uDensity;
+      uniform float uTime;`)
+    .replace('#include <begin_vertex>', '#include <begin_vertex>\n' + FOLIAGE_VERT);
+}
+
+// ---------------------------------------------------------------- materials
+const foliageMat = new THREE.MeshStandardMaterial({
+  map: leafTex,
+  alphaTest: 0.42,
+  alphaToCoverage: true,
+  side: THREE.DoubleSide,
+  vertexColors: true,
+  roughness: 0.82,
+  metalness: 0,
+});
+foliageMat.onBeforeCompile = shader => {
+  injectFoliageVertex(shader);
+  shader.uniforms.uSunDirView = U.uSunDirView;
+  shader.uniforms.uSunCol = U.uSunCol;
+  shader.uniforms.uTrans = U.uTrans;
+  shader.fragmentShader = shader.fragmentShader
+    .replace('#include <common>', `#include <common>
+      uniform vec3 uSunDirView;
+      uniform vec3 uSunCol;
+      uniform float uTrans;`)
+    // 양면 카드라도 법선을 바깥으로 유지 → 수관이 덩어리처럼 부드럽게 음영
+    .replace('#include <normal_fragment_begin>', `
+      float faceDirection = 1.0;
+      vec3 normal = normalize(vNormal);
+      vec3 nonPerturbedNormal = normal;`)
+    // 역광일 때 잎이 빛을 투과하는 느낌
+    .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+      {
+        float bl = pow(max(dot(-normalize(vViewPosition), uSunDirView), 0.0), 4.0);
+        totalEmissiveRadiance += diffuseColor.rgb * uSunCol * (0.05 + 0.7 * bl) * uTrans;
+      }`);
+};
+const foliageDepth = new THREE.MeshDepthMaterial({
+  depthPacking: THREE.RGBADepthPacking,
+  map: leafTex,
+  alphaTest: 0.42,
+  side: THREE.DoubleSide,
+});
+foliageDepth.onBeforeCompile = injectFoliageVertex;
+
+const barkMat = new THREE.MeshStandardMaterial({
+  map: barkTex,
+  bumpMap: barkTex,
+  bumpScale: 2.5,
+  roughness: 0.95,
+  color: 0xffffff,
+});
+barkMat.onBeforeCompile = shader => {
+  shader.uniforms.uTime = U.uTime;
+  shader.vertexShader = shader.vertexShader
+    .replace('#include <common>', '#include <common>\nuniform float uTime;')
+    .replace('#include <begin_vertex>', '#include <begin_vertex>\n' + SWAY);
+};
+
+// ---------------------------------------------------------------- tree geometry
+function buildTrunk(H, h0, R) {
+  const trunk = new THREE.CylinderGeometry(0.05, 0.3, H, 14, 24, true);
+  trunk.translate(0, H / 2, 0);
+  const p = trunk.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const ang = Math.atan2(z, x);
+    const flare = 1 + 0.55 * Math.exp(-y * 1.8);
+    const ridge = 1 + 0.07 * Math.sin(ang * 7 + y * 0.25) + 0.04 * Math.sin(ang * 13 - y * 0.4);
+    p.setX(i, x * flare * ridge);
+    p.setZ(i, z * flare * ridge);
+  }
+  trunk.computeVertexNormals();
+  const parts = [trunk];
+  for (let k = 0; k < 80; k++) {
+    const hf = Math.random();
+    const y = h0 * 0.8 + hf * (H - h0 * 0.8) * 0.96;
+    const crown = Math.max(0, (y - h0) / (H - h0));
+    const rMax = R * Math.pow(1 - crown, 0.95) + 0.3;
+    const len = rMax * rand(0.5, 0.9);
+    const b = new THREE.CylinderGeometry(0.006, 0.012 + 0.022 * (1 - hf), len, 4, 1, true);
+    b.translate(0, len / 2, 0);
+    b.rotateZ(-(Math.PI / 2 - rand(0.45, 0.9)));
+    b.rotateY(rand(0, Math.PI * 2));
+    b.translate(0, y, 0);
+    parts.push(b);
+  }
+  return mergeGeometries(parts);
+}
+
+function buildFoliage(H, h0, R, count) {
+  const parts = [];
+  const dummy = new THREE.Object3D();
+  const look = new THREE.Vector3();
+  for (let i = 0; i < count; i++) {
+    const hf = Math.pow(Math.random(), 0.8);
+    const y = h0 + hf * (H - h0);
+    const rMax = R * Math.pow(1 - hf, 0.95) + 0.3;
+    const rf = Math.sqrt(rand(0.2, 1));
+    const r = rMax * rf;
+    const a = rand(0, Math.PI * 2);
+    const radial = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
+    const pos = radial.clone().multiplyScalar(r).setY(y);
+    const size = (0.8 + rMax * 0.22) * rand(0.8, 1.2);
+    const plane = new THREE.PlaneGeometry(size, size * 0.85);
+    dummy.position.copy(pos);
+    look.copy(pos).add(radial).add(new THREE.Vector3(0, rand(-0.5, 0.4), 0));
+    dummy.lookAt(look);
+    dummy.rotateZ(rand(0, Math.PI * 2));
+    dummy.rotateX(rand(-0.5, 0.5));
+    dummy.updateMatrix();
+    plane.applyMatrix4(dummy.matrix);
+
+    const n = radial.clone().add(new THREE.Vector3(0, 0.45, 0)).normalize();
+    const vc = plane.attributes.position.count;
+    const normals = new Float32Array(vc * 3);
+    const colors = new Float32Array(vc * 3);
+    const rnd = new Float32Array(vc);
+    const centers = new Float32Array(vc * 3);
+    // 안쪽·아래쪽일수록 어둡게 (수관 내부 차폐)
+    const ao = (0.42 + 0.58 * Math.pow(rf, 1.2)) * (0.78 + 0.22 * hf) * rand(0.85, 1.1);
+    const hue = rand(0.94, 1.06);
+    const rr = Math.random();
+    for (let v = 0; v < vc; v++) {
+      normals.set([n.x, n.y, n.z], v * 3);
+      colors.set([ao * hue, ao, ao * (2 - hue)], v * 3);
+      rnd[v] = rr;
+      centers.set([pos.x, pos.y, pos.z], v * 3);
+    }
+    plane.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+    plane.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    plane.setAttribute('aRand', new THREE.BufferAttribute(rnd, 1));
+    plane.setAttribute('aCenter', new THREE.BufferAttribute(centers, 3));
+    parts.push(plane);
+  }
+  return mergeGeometries(parts);
+}
+
+const VARIANTS = [
+  { H: 25, h0: 3.4, R: 3.0, cards: 340 },
+  { H: 29, h0: 4.2, R: 3.4, cards: 380 },
+  { H: 22, h0: 2.8, R: 2.7, cards: 300 },
+].map(v => ({ ...v, trunk: buildTrunk(v.H, v.h0, v.R), foliage: buildFoliage(v.H, v.h0, v.R, v.cards), trees: [] }));
+
+// 가로수 배치: 도로 양옆 1열 + 뒤쪽 숲
+const ROWS = [
+  { x: -5.4, sp: 6.2, s: 1.0 }, { x: 5.4, sp: 6.2, s: 1.0 },
+  { x: -10.8, sp: 7.4, s: 1.05 }, { x: 10.8, sp: 7.4, s: 1.05 },
+  { x: -17.5, sp: 8.6, s: 1.1 }, { x: 17.5, sp: 8.6, s: 1.1 },
+  { x: -25, sp: 10, s: 1.15 }, { x: 25, sp: 10, s: 1.15 },
+];
+const trees = [];
+ROWS.forEach((row, ri) => {
+  const n = Math.floor(LOOP / row.sp);
+  const off = (ri % 4 >= 2) ? row.sp / 2 : 0;
+  for (let i = 0; i < n; i++) {
+    const v = VARIANTS[Math.floor(Math.random() * VARIANTS.length)];
+    const t = {
+      x: row.x + rand(-0.35, 0.35) * (ri < 2 ? 1 : 3),
+      z: 14 - i * row.sp - off + rand(-0.6, 0.6),
+      q: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rand(0, Math.PI * 2)),
+      s: row.s * rand(0.88, 1.12),
+      v, idx: v.trees.length,
+    };
+    v.trees.push(t);
+    trees.push(t);
+  }
+});
+
+const tmpColor = new THREE.Color();
+VARIANTS.forEach(v => {
+  v.trunkMesh = new THREE.InstancedMesh(v.trunk, barkMat, v.trees.length);
+  v.foliageMesh = new THREE.InstancedMesh(v.foliage, foliageMat, v.trees.length);
+  v.foliageMesh.customDepthMaterial = foliageDepth;
+  for (const m of [v.trunkMesh, v.foliageMesh]) {
+    m.castShadow = true;
+    m.receiveShadow = true;
+    m.frustumCulled = false;
+    m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    scene.add(m);
+  }
+  v.trees.forEach(t => {
+    const b = rand(0.82, 1.1);
+    tmpColor.setRGB(b * rand(0.95, 1.05), b, b * rand(0.9, 1.05));
+    v.foliageMesh.setColorAt(t.idx, tmpColor);
+    tmpColor.setScalar(rand(0.85, 1.1));
+    v.trunkMesh.setColorAt(t.idx, tmpColor);
+  });
+});
+
+const mtx = new THREE.Matrix4(), vPos = new THREE.Vector3(), vScale = new THREE.Vector3();
+function updateTrees(dz) {
+  for (const t of trees) {
+    t.z += dz;
+    if (t.z > 14) t.z -= LOOP;
+    vPos.set(t.x, 0, t.z);
+    vScale.setScalar(t.s);
+    mtx.compose(vPos, t.q, vScale);
+    t.v.trunkMesh.setMatrixAt(t.idx, mtx);
+    t.v.foliageMesh.setMatrixAt(t.idx, mtx);
+  }
+  VARIANTS.forEach(v => {
+    v.trunkMesh.instanceMatrix.needsUpdate = true;
+    v.foliageMesh.instanceMatrix.needsUpdate = true;
+  });
+}
+
+// ---------------------------------------------------------------- ground & road
+const groundMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 1 });
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 420), groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.z = -190;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const roadMat = new THREE.MeshStandardMaterial({
+  map: roadTex, roughness: 0.82,
+  polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+});
+const road = new THREE.Mesh(new THREE.PlaneGeometry(7.4, 420), roadMat);
+road.rotation.x = -Math.PI / 2;
+road.position.set(0, 0.01, -190);
+road.receiveShadow = true;
+scene.add(road);
+
+const edgeMat = new THREE.MeshStandardMaterial({
+  map: edgeTex, transparent: true, depthWrite: false, roughness: 0.95,
+  polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4,
+});
+for (const side of [-1, 1]) {
+  const geo = new THREE.PlaneGeometry(2.2, 420);
+  if (side < 0) {
+    const uv = geo.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setX(i, 1 - uv.getX(i));
+  }
+  const m = new THREE.Mesh(geo, edgeMat);
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(side * 3.75, 0.02, -190);
+  m.receiveShadow = true;
+  m.renderOrder = 1;
+  scene.add(m);
+}
+
+// ---------------------------------------------------------------- sky & light
+const skyMat = new THREE.ShaderMaterial({
+  side: THREE.BackSide,
+  depthWrite: false,
+  fog: false,
+  uniforms: {
+    uTop: { value: new THREE.Color() },
+    uHorizon: { value: new THREE.Color() },
+    uSunDir: { value: new THREE.Vector3() },
+    uSunColor: { value: new THREE.Color() },
+    uGlow: { value: 1 },
+  },
+  vertexShader: `
+    varying vec3 vDir;
+    void main() {
+      vDir = normalize(position);
+      vec4 p = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      gl_Position = p.xyww;
+    }`,
+  fragmentShader: `
+    uniform vec3 uTop, uHorizon, uSunColor, uSunDir;
+    uniform float uGlow;
+    varying vec3 vDir;
+    void main() {
+      vec3 d = normalize(vDir);
+      vec3 col = mix(uHorizon, uTop, smoothstep(0.0, 0.5, d.y));
+      float s = max(dot(d, uSunDir), 0.0);
+      col += uSunColor * (pow(s, 900.0) * 18.0 + pow(s, 24.0) * 0.6 + pow(s, 4.0) * 0.18) * uGlow;
+      gl_FragColor = vec4(col, 1.0);
+    }`,
+});
+const sky = new THREE.Mesh(new THREE.SphereGeometry(800, 32, 16), skyMat);
+scene.add(sky);
+
+const hemi = new THREE.HemisphereLight(0xffffff, 0x444422, 1);
+scene.add(hemi);
+
+const sun = new THREE.DirectionalLight(0xffffff, 3);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.bias = -0.0004;
+sun.shadow.normalBias = 0.06;
+Object.assign(sun.shadow.camera, { left: -34, right: 34, top: 70, bottom: -70, near: 1, far: 320 });
+sun.shadow.camera.updateProjectionMatrix();
+sun.target.position.set(0, 0, -45);
+scene.add(sun, sun.target);
+const sunDir = new THREE.Vector3();
+
+// ---------------------------------------------------------------- particles (꽃가루 / 먼지 / 낙엽 / 눈)
+const PN = 5000;
+const pPos = new Float32Array(PN * 3), pRand = new Float32Array(PN);
+for (let i = 0; i < PN; i++) {
+  pPos.set([rand(-22, 22), rand(0, 22), rand(-70, 5)], i * 3);
+  pRand[i] = Math.random();
+}
+const pGeo = new THREE.BufferGeometry();
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+pGeo.setAttribute('aRand', new THREE.BufferAttribute(pRand, 1));
+const pMat = new THREE.ShaderMaterial({
+  transparent: true,
+  depthWrite: false,
+  uniforms: {
+    uTime: U.uTime,
+    uTravel: { value: 0 },
+    uColor: { value: new THREE.Color() },
+    uSize: { value: 0.03 },
+    uAmount: { value: 0.3 },
+    uFall: { value: 0.3 },
+    uFlutter: { value: 0.5 },
+    uShape: { value: 0 },
+    uAlpha: { value: 0.8 },
+    uPixel: { value: 800 },
+    uFogColor: { value: new THREE.Color() },
+    uFogDensity: { value: 0.01 },
+  },
+  vertexShader: `
+    attribute float aRand;
+    uniform float uTime, uTravel, uSize, uAmount, uFall, uFlutter, uPixel;
+    varying float vDepth, vR;
+    void main() {
+      vec3 p = position;
+      p.y = mod(p.y - uTime * uFall * (0.6 + 0.8 * aRand), 22.0);
+      p.z = mod(p.z + uTravel + 70.0, 75.0) - 70.0;
+      p.x += sin(uTime * (0.7 + aRand) + aRand * 20.0) * uFlutter;
+      p.z += cos(uTime * (0.5 + aRand) + aRand * 13.0) * uFlutter * 0.5;
+      vec4 mv = viewMatrix * vec4(p, 1.0);
+      gl_Position = projectionMatrix * mv;
+      float vis = step(aRand, uAmount);
+      gl_PointSize = min(vis * uSize * (0.5 + aRand) * uPixel / max(-mv.z, 0.1), 48.0);
+      vDepth = -mv.z;
+      vR = aRand;
+    }`,
+  fragmentShader: `
+    uniform vec3 uColor, uFogColor;
+    uniform float uShape, uAlpha, uFogDensity, uTime;
+    varying float vDepth, vR;
+    void main() {
+      vec2 c = gl_PointCoord - 0.5;
+      float a = vR * 40.0 + uTime * (1.0 + vR * 2.0) * uShape;
+      c = mat2(cos(a), -sin(a), sin(a), cos(a)) * c;
+      c.y *= mix(1.0, 3.2, uShape);
+      float d = length(c);
+      float alpha = smoothstep(0.5, 0.18, d) * uAlpha;
+      float fog = 1.0 - exp(-pow(uFogDensity * vDepth, 2.0));
+      alpha *= 1.0 - fog * 0.8;
+      if (alpha < 0.01) discard;
+      gl_FragColor = vec4(mix(uColor * (0.85 + 0.3 * vR), uFogColor, fog), alpha);
+    }`,
+});
+const particles = new THREE.Points(pGeo, pMat);
+particles.frustumCulled = false;
+scene.add(particles);
+
+// ---------------------------------------------------------------- seasons
+const C = h => new THREE.Color(h);
+const SEASONS = [
+  { // 봄
+    ko: '봄', en: 'SPRING', line: '연둣빛 숨결이 길 위로 번진다',
+    foliage: C('#8db84a'), density: 0.82, trans: 1.0,
+    ground: C('#7a9446'), road: C('#ffffff'), edge: C('#7d8a48'), edgeOp: 0.0,
+    top: C('#7ea4cc'), horizon: C('#cbd6cf'), fog: 0.011,
+    sun: C('#fff0d8'), sunI: 3.4, elev: 0.42, glow: 1.0,
+    hemiS: C('#d4e2ea'), hemiG: C('#5d6b3a'), hemiI: 1.05, exposure: 0.95,
+    pCol: C('#f2efd8'), pSize: 0.02, pAmt: 0.22, pFall: 0.3, pFlut: 0.7, pShape: 0, pAlpha: 0.7,
+    tint: new THREE.Vector3(1.0, 1.01, 0.99),
+  },
+  { // 여름
+    ko: '여름', en: 'SUMMER', line: '짙은 초록의 터널을 지나',
+    foliage: C('#3d6a24'), density: 1.0, trans: 0.8,
+    ground: C('#5a8030'), road: C('#f4f4f4'), edge: C('#4f6a2a'), edgeOp: 0.0,
+    top: C('#4a7fc0'), horizon: C('#bfd0d6'), fog: 0.009,
+    sun: C('#fff5e2'), sunI: 4.2, elev: 0.72, glow: 1.1,
+    hemiS: C('#c0d6ea'), hemiG: C('#3e5022'), hemiI: 1.0, exposure: 0.9,
+    pCol: C('#fff0c2'), pSize: 0.012, pAmt: 0.18, pFall: 0.06, pFlut: 0.4, pShape: 0, pAlpha: 0.65,
+    tint: new THREE.Vector3(1.02, 1.0, 0.97),
+  },
+  { // 가을
+    ko: '가을', en: 'AUTUMN', line: '구릿빛으로 타오르는 길',
+    foliage: C('#a65b2b'), density: 0.9, trans: 1.35,
+    ground: C('#a6602c'), road: C('#ebe2d8'), edge: C('#9a4a1c'), edgeOp: 0.9,
+    top: C('#8a9fbf'), horizon: C('#e8c39a'), fog: 0.012,
+    sun: C('#ffc88a'), sunI: 3.6, elev: 0.17, glow: 1.4,
+    hemiS: C('#f0cfa8'), hemiG: C('#6b3c1c'), hemiI: 0.85, exposure: 0.95,
+    pCol: C('#a24b1b'), pSize: 0.06, pAmt: 0.5, pFall: 1.1, pFlut: 1.0, pShape: 1, pAlpha: 0.95,
+    tint: new THREE.Vector3(1.06, 0.99, 0.9),
+  },
+  { // 겨울
+    ko: '겨울', en: 'WINTER', line: '고요히 내려앉은 눈',
+    foliage: C('#5a4336'), density: 0.38, trans: 0.25,
+    ground: C('#ffffff'), road: C('#a4abb4'), edge: C('#f6f8fb'), edgeOp: 0.97,
+    top: C('#a9b6c3'), horizon: C('#dce2e7'), fog: 0.02,
+    sun: C('#e6ecf5'), sunI: 1.5, elev: 0.3, glow: 0.45,
+    hemiS: C('#e2e9f0'), hemiG: C('#c4ccd4'), hemiI: 1.6, exposure: 1.0,
+    pCol: C('#ffffff'), pSize: 0.045, pAmt: 1.0, pFall: 1.3, pFlut: 0.5, pShape: 0, pAlpha: 0.9,
+    tint: new THREE.Vector3(0.95, 0.99, 1.05),
+  },
+];
+
+const S = {}; // 현재 보간된 계절 상태
+function blendSeason(phase) {
+  const i = Math.floor(phase) % 4;
+  const a = SEASONS[i], b = SEASONS[(i + 1) % 4];
+  const t = smooth(0.55, 1.0, phase - Math.floor(phase)); // 계절의 55%는 머물고 나머지 동안 다음 계절로 전이
+  for (const k in a) {
+    const va = a[k], vb = b[k];
+    if (va instanceof THREE.Color) (S[k] ||= new THREE.Color()).lerpColors(va, vb, t);
+    else if (va instanceof THREE.Vector3) (S[k] ||= new THREE.Vector3()).lerpVectors(va, vb, t);
+    else if (typeof va === 'number') S[k] = va + (vb - va) * t;
+  }
+  return i;
+}
+
+function applySeason() {
+  foliageMat.color.copy(S.foliage);
+  U.uDensity.value = S.density;
+  U.uTrans.value = S.trans;
+  groundMat.color.copy(S.ground);
+  roadMat.color.copy(S.road);
+  edgeMat.color.copy(S.edge);
+  edgeMat.opacity = S.edgeOp;
+
+  skyMat.uniforms.uTop.value.copy(S.top);
+  skyMat.uniforms.uHorizon.value.copy(S.horizon);
+  skyMat.uniforms.uSunColor.value.copy(S.sun);
+  skyMat.uniforms.uGlow.value = S.glow;
+  scene.fog.color.copy(S.horizon);
+  scene.fog.density = S.fog;
+
+  sunDir.set(-0.28, Math.sin(S.elev), -Math.cos(S.elev)).normalize();
+  skyMat.uniforms.uSunDir.value.copy(sunDir);
+  sun.position.copy(sun.target.position).addScaledVector(sunDir, 150);
+  sun.color.copy(S.sun);
+  sun.intensity = S.sunI;
+  U.uSunCol.value.copy(S.sun).multiplyScalar(S.sunI * 0.3);
+  hemi.color.copy(S.hemiS);
+  hemi.groundColor.copy(S.hemiG);
+  hemi.intensity = S.hemiI;
+  renderer.toneMappingExposure = S.exposure;
+
+  const pu = pMat.uniforms;
+  pu.uColor.value.copy(S.pCol);
+  pu.uSize.value = S.pSize;
+  pu.uAmount.value = S.pAmt;
+  pu.uFall.value = S.pFall;
+  pu.uFlutter.value = S.pFlut;
+  pu.uShape.value = S.pShape;
+  pu.uAlpha.value = S.pAlpha;
+  pu.uFogColor.value.copy(S.horizon);
+  pu.uFogDensity.value = S.fog;
+
+  gradePass.uniforms.uTint.value.copy(S.tint);
+}
+
+// ---------------------------------------------------------------- post-processing
+const rt = new THREE.WebGLRenderTarget(innerWidth * DPR, innerHeight * DPR, { type: THREE.HalfFloatType, samples: 4 });
+const composer = new EffectComposer(renderer, rt);
+composer.setPixelRatio(DPR);
+composer.setSize(innerWidth, innerHeight);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.32, 0.7, 0.92);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+const gradePass = new ShaderPass({
+  uniforms: {
+    tDiffuse: { value: null },
+    uTime: { value: 0 },
+    uTint: { value: new THREE.Vector3(1, 1, 1) },
+    uAspect: { value: innerWidth / innerHeight },
+  },
+  vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float uTime, uAspect;
+    uniform vec3 uTint;
+    varying vec2 vUv;
+    float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+    void main() {
+      vec2 dc = vUv - 0.5;
+      float r2 = dot(dc * vec2(uAspect, 1.0), dc * vec2(uAspect, 1.0));
+      vec3 c;
+      c.r = texture2D(tDiffuse, vUv - dc * 0.0035).r;
+      c.g = texture2D(tDiffuse, vUv).g;
+      c.b = texture2D(tDiffuse, vUv + dc * 0.0035).b;
+      float l = dot(c, vec3(0.299, 0.587, 0.114));
+      c = mix(vec3(l), c, 1.06);                       // 채도
+      c = mix(c, c * c * (3.0 - 2.0 * c), 0.18);      // 필름 S커브
+      c *= uTint;
+      c *= mix(1.0, 0.55, smoothstep(0.12, 0.9, r2)); // 비네트
+      c += (hash(vUv * 1000.0 + fract(uTime * 7.0) * 100.0) - 0.5) * 0.035; // 그레인
+      gl_FragColor = vec4(c, 1.0);
+    }`,
+});
+composer.addPass(gradePass);
+
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  camera.aspect = w / h;
+  camera.fov = w / h < 0.8 ? 66 : 52;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  composer.setSize(w, h);
+  bloom.setSize(w, h);
+  gradePass.uniforms.uAspect.value = w / h;
+  pMat.uniforms.uPixel.value = (h * DPR) / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+}
+addEventListener('resize', resize);
+resize();
+
+// ---------------------------------------------------------------- HUD
+const $ = id => document.getElementById(id);
+const segs = [0, 1, 2, 3].map(i => $('seg' + i));
+const titleCard = $('titleCard');
+let shownSeason = -1, shownYear = -1;
+
+function showTitle(i) {
+  const s = SEASONS[i];
+  $('tcEn').textContent = s.en;
+  $('tcKo').textContent = s.ko;
+  $('tcLine').textContent = s.line;
+  titleCard.classList.remove('show');
+  void titleCard.offsetWidth;
+  titleCard.classList.add('show');
+}
+
+function updateHud(phase, speed) {
+  const i = Math.floor(phase) % 4;
+  const year = Math.floor(phase / 4) + 1;
+  const yp = phase % 4;
+  segs.forEach((el, k) => { el.style.transform = `scaleX(${Math.min(Math.max(yp - k, 0), 1)})`; });
+  const month = (Math.floor(yp * 3) + 2) % 12 + 1;  // 봄 = 3월부터
+  $('yearLabel').textContent = `YEAR ${year} · ${month}월`;
+  $('speed').textContent = Math.round(speed * 3.6);
+  if (i !== shownSeason || year !== shownYear) {
+    $('seasonName').textContent = SEASONS[i].ko;
+    if (shownSeason !== -1) showTitle(i);
+    shownSeason = i;
+    shownYear = year;
+  }
+}
+
+// 재설정 시 짧게 암전 후 봄으로
+let cut = false;
+addEventListener('sw-reset', () => {
+  fadeEl.classList.add('quick');
+  fadeEl.style.opacity = 1;
+  cut = true;
+  setTimeout(() => {
+    cut = false;
+    shownSeason = -1;
+    fadeEl.style.opacity = 0;
+    setTimeout(() => { fadeEl.classList.remove('quick'); showTitle(0); }, 300);
+  }, 650);
+});
+
+// ---------------------------------------------------------------- loop
+const clock = new THREE.Clock();
+let speed = 0, travel = 0, scenePhase = 0, started = false;
+
+function frame() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const time = clock.elapsedTime;
+  U.uTime.value = time;
+  gradePass.uniforms.uTime.value = time;
+
+  const running = window.SW ? window.SW.running() : false;
+  const target = running ? 16 : 4.5;               // 주행 중 약 58km/h, 정지 시 서행
+  speed += (target - speed) * (1 - Math.exp(-dt * 0.6));
+  const dz = speed * dt;
+  travel += dz;
+
+  if (!cut) scenePhase = window.SW ? window.SW.elapsed() / SEASON_MS : 0;
+  blendSeason(scenePhase);
+  applySeason();
+
+  updateTrees(dz);
+  for (const t of [roadTex, edgeTex]) t.offset.y += dz / (t === roadTex ? 14 : 10);
+  groundTex.offset.y += dz / 8;
+  pMat.uniforms.uTravel.value = travel;
+
+  // 운전석 시점: 미세한 노면 진동과 흔들림
+  const k = Math.min(speed / 10, 1);
+  camera.position.set(
+    camBase.x + Math.sin(travel * 0.04) * 0.06,
+    camBase.y + (Math.sin(travel * 1.7) * 0.004 + Math.sin(travel * 0.63) * 0.006) * k,
+    camBase.z
+  );
+  camera.lookAt(camTarget.x + Math.sin(travel * 0.025) * 0.6, camTarget.y, camTarget.z);
+  camera.rotateZ(Math.sin(travel * 0.07) * 0.003);
+  camera.updateMatrixWorld();
+  U.uSunDirView.value.copy(sunDir).transformDirection(camera.matrixWorldInverse);
+
+  updateHud(scenePhase, speed);
+  composer.render();
+
+  if (!started) {
+    started = true;
+    requestAnimationFrame(() => { fadeEl.style.opacity = 0; });
+    setTimeout(() => showTitle(0), 1400);
+  }
+  requestAnimationFrame(frame);
+}
+frame();
+</script>
+</body>
+</html>
